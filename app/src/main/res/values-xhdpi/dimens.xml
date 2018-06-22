@@ -1,0 +1,27 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="app_bar_height">180dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
+
+    <!-- TextViews -->
+    <dimen name="size_title">30sp</dimen>
+    <dimen name="padding_title">30dip</dimen>
+
+    <!-- Images avatar -->
+    <dimen name="size_image_height">77dp</dimen>
+    <dimen name="size_image_width">@dimen/size_image_height</dimen>
+
+    <!-- Images drapeau CI -->
+    <dimen name="size_drapeau_height">32dp</dimen>
+    <dimen name="size_drapeau_width">@dimen/size_drapeau_height</dimen>
+
+    <!-- EditText -->
+    <dimen name="size_edittext_width">208dp</dimen>
+
+
+
+
+</resources>

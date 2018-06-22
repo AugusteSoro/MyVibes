@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.kse.vas.myvibes.MainActivity">
+    <item
+        android:id="@+id/scanner"
+        android:icon="@drawable/ic_add_white_24dp"
+        android:orderInCategory="100"
+        android:title="Scanner QR @string/mr_button_content_description"
+        app:showAsAction="always" />
+</menu>

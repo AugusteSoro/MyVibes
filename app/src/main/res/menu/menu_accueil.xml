@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.kse.vas.myvibes.MainActivity">
+    <item
+        android:id="@+id/rafraichir"
+        android:orderInCategory="100"
+        android:title="Rafraichir"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/codeQR"
+        android:orderInCategory="100"
+        android:title="Scanner code QR"
+        app:showAsAction="never" />
+</menu>
