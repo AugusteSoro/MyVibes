@@ -1,9 +1,12 @@
 package com.kse.vas.myvibes;
 
 import android.content.Context;
+import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -52,6 +55,10 @@ public class CustomAdapterOneService extends BaseAdapter {
 
         ImageView drapeau = convertView.findViewById(R.id.ivAvatarService);
         TextView textViewNom = convertView.findViewById(R.id.nom);
+        CardView cvService = convertView.findViewById(R.id.cvService);
+        //Animer la CardView
+        Animation animationCv = AnimationUtils.loadAnimation(context, R.anim.blink);
+        cvService.setAnimation(animationCv);
         //TextView textViewDescription = convertView.findViewById(R.id.description);
 
 

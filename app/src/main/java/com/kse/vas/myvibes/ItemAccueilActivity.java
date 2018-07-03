@@ -1815,7 +1815,8 @@ public class ItemAccueilActivity extends AppCompatActivity {
         }
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_message_white_24dp)
+                //.setSmallIcon(R.drawable.ic_message_white_24dp)
+                .setSmallIcon(R.drawable.kse2)
                 .setContentTitle(nomService)
                 .setContentText(contenu)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -1916,7 +1917,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                         // convert seconds to milliseconds
                         Date date = new java.util.Date(unixSeconds*1000L);
                         // the format of your date
-                        SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                         // give a timezone reference for formatting (see comment at the bottom)
                         //sdf.setTimeZone(java.util.TimeZone.getTimeZone("GMT-4"));
                         String dateFinSous1 = sdf.format(date);
@@ -1927,6 +1928,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                         try {
                             Date dateFinSous =  sdf.parse(dateFinSous1);
                             Date dateJour =  sdf.parse(dateJour1);
+
                             if (dateFinSous.before(dateJour)){
                                 //Souscription invalide
                                 Log.i("Souscription", "Souscription perdu");
@@ -2006,6 +2008,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                 break;
             case android.R.id.home:
                 NavUtils.navigateUpTo(this, new Intent(this, AccueilActivity.class));
+                overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
                 break;
 
         }

@@ -8,6 +8,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -39,6 +41,10 @@ public class OTPActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         textOtp = (EditText) findViewById(R.id.textOtp);
+        //Animation sur Editext OTP
+        Animation animationOTP = AnimationUtils.loadAnimation(OTPActivity.this, R.anim.myanimation);
+        textOtp.startAnimation(animationOTP);
+
         bt_cliquer= (Button)findViewById(R.id.bt_cliquer);
         voirOTP = (TextView)findViewById(R.id.voirOTP);
 

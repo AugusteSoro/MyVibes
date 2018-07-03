@@ -21,6 +21,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -137,9 +139,19 @@ public class MainActivity extends AppCompatActivity{
 
 
         textNumDeTel = (EditText) findViewById(R.id.textNumDeTel);
+        //Animation de l'Edittext
+        Animation animation = AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.slide_in_left);
+        animation.setDuration(3000);
+        textNumDeTel.startAnimation(animation);
+
+
 
         //Bouton pour aller a la prochaine activité
         btValider = (FloatingActionButton) findViewById(R.id.btValider);
+        //Animation du bouton
+        Animation animationbtn = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade);
+        btValider.startAnimation(animationbtn);
+
 
         //Evenement au clique du bouton valider
         btValider.setOnClickListener(new View.OnClickListener() {

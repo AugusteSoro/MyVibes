@@ -17,7 +17,7 @@
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="56dp"
             android:layout_weight="1"
             android:background="@color/colorPrimary"
             app:layout_collapseMode="pin"
@@ -52,11 +52,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:fadingEdge="none"
         android:gravity="center"
         android:text="Aucune information à afficher"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:visibility="visible" />
+        android:visibility="gone" />
 
 
 </android.support.design.widget.CoordinatorLayout>

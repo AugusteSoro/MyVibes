@@ -7,7 +7,6 @@
         android:id="@+id/gvPublication"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#e5e5e5"
-        android:fadingEdge="vertical"
-        android:verticalSpacing="15dp" />
+        android:background="@color/bgListviewGray"
+        android:fadingEdge="vertical" />
 </LinearLayout>

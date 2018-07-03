@@ -43,7 +43,8 @@ public class SplashScreenActivity extends AppCompatActivity {
             String num = sharedPreferences.getString(PREFS_NUM, null);
             String OTP = sharedPreferences.getString(PREFS_OTP, null);
             String pseudo = sharedPreferences.getString(PREFS_PSEUDO, null);
-            Toast.makeText(this, "Bienvenue : " + pseudo + ",Votre numero : "+ num + " OTP: " + OTP, Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "Bienvenue : " + pseudo + ",Votre numero : "+ num + " OTP: " + OTP, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Bienvenue : " + pseudo + ",Votre numero : "+ num , Toast.LENGTH_LONG).show();
             startActivity(intentServiceView);
             finish();
         }

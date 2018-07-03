@@ -1626,14 +1626,37 @@ public class AccueilActivity extends AppCompatActivity {
     }
 
 
+    public String ObtainDate(int dureeSouscription){
+        //Ajout de la durée de la souscription à la date de souscription
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.add(gregorianCalendar.DAY_OF_YEAR,dureeSouscription);
+        DateFormat finDateFormater = new SimpleDateFormat("dd-MM-yyyy");
+        String formatedFinDate = finDateFormater.format(gregorianCalendar.getTime());
+        return formatedFinDate;
+    }
+
     //Enregistrer souscription
     private class EnregistrerSouscription extends AsyncTask<String, String, Message[]> {
 
+        int dureeSouscription;
+        String offre;
+        String dateFinSous;
 
         @Override
         protected Message[] doInBackground(String... params) {
 
             String jsonObject = params[0];
+            //Verifier la durée de la souscription
+            dureeSouscription = Integer.parseInt(params[1]);
+            if (dureeSouscription == 1){
+                dateFinSous = ObtainDate(dureeSouscription);
+                Log.i("dateFinSous", dateFinSous);
+                offre = "Jour";
+            }else if (dureeSouscription == 7){
+                dateFinSous = ObtainDate(dureeSouscription);
+                Log.i("dateFinSous", dateFinSous);
+                offre = "Semaine";
+            }
 
             String valeur = null;
             //publishProgress(valeur);
@@ -1698,11 +1721,16 @@ public class AccueilActivity extends AppCompatActivity {
                 Toast.makeText(AccueilActivity.this, R.string.sous_echoue, Toast.LENGTH_LONG).show();
             }
             else if (values[0].contains("true")){
-                Toast.makeText(AccueilActivity.this, R.string.sous_reussi, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(AccueilActivity.this, R.string.sous_reussi, Toast.LENGTH_SHORT).show();
+
+                //Creation du message de reussite
+                String messageReussite = getResources().getString(R.string.fact_reussi, offre,dateFinSous);
+
+                Toast.makeText(AccueilActivity.this, messageReussite, Toast.LENGTH_LONG).show();
                 startActivity(intent);
 
             }else if (values[0].contains("false")){
-                Toast.makeText(AccueilActivity.this, R.string.sous_echoue, Toast.LENGTH_SHORT).show();
+                Toast.makeText(AccueilActivity.this, R.string.fact_echoue, Toast.LENGTH_SHORT).show();
             }
 
         }

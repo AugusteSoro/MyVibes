@@ -1,0 +1,26 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/frameAbonnement"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.kse.vas.myvibes.AbonnementFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <include
+        layout="@layout/content_service"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tvTabFrag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="Aucune information à afficher."
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        android:textColor="@color/colorNoir"
+        android:textSize="24sp" />
+</FrameLayout>

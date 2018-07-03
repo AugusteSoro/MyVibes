@@ -11,4 +11,6 @@
     <color name="blueCustom">#6184c8</color>
     <color name="yellowCustom">#ffee84</color>
 
+    <color name="bgListviewGray">#e5e5e5</color>
+
 </resources>

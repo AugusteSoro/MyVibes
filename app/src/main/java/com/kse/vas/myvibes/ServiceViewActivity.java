@@ -1,11 +1,13 @@
 package com.kse.vas.myvibes;
 
+import android.app.ActionBar;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +16,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ProgressBar;
@@ -44,6 +48,7 @@ public class ServiceViewActivity extends AppCompatActivity {
     GridView gridView;
     ProgressBar pbServiceView;
 
+
     String ipOffline = ConfigApp.ipOffline;
     String ipOnline = ConfigApp.ipOnline;
 
@@ -66,6 +71,8 @@ public class ServiceViewActivity extends AppCompatActivity {
     int offreduree;
     Intent intentAccueil;
 
+    private MenuItem menuItem;
+
 
 
 
@@ -78,8 +85,13 @@ public class ServiceViewActivity extends AppCompatActivity {
 
 
         pbServiceView = findViewById(R.id.pbServiceView);
+        //Animer progressbar
+        Animation animationPb = AnimationUtils.loadAnimation(ServiceViewActivity.this,R.anim.clockwise);
+        pbServiceView.startAnimation(animationPb);
+
         gridView = (GridView) findViewById(R.id.gvServiceView);
         gridView.setNumColumns(3);
+
 
         sharedPreferences = getBaseContext().getSharedPreferences(PREFS, MODE_PRIVATE);
         num = sharedPreferences.getString(PREFS_NUM, null);
@@ -165,6 +177,9 @@ public class ServiceViewActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             pbServiceView.setVisibility(View.VISIBLE);
+            //Animer progressbar
+            Animation animationPb = AnimationUtils.loadAnimation(ServiceViewActivity.this,R.anim.clockwise);
+            pbServiceView.startAnimation(animationPb);
 
         }
 
@@ -240,7 +255,8 @@ public class ServiceViewActivity extends AppCompatActivity {
                                                 .setPositiveButton("CONFIRMER", new DialogInterface.OnClickListener() {
                                                     public void onClick(DialogInterface dialog, int id) {
                                                         // CONFIRMATION
-                                                        new RechercheOffreId().execute(idService,dureeOffre);
+                                                        new VerifSouscriptionExistante().execute(idService,dureeOffre);
+                                                        //new RechercheOffreId().execute(idService,dureeOffre);
 
                                                     }
                                                 });
@@ -272,7 +288,8 @@ public class ServiceViewActivity extends AppCompatActivity {
                                                     public void onClick(DialogInterface dialog, int id) {
                                                         // CONFIRMATION
 
-                                                        new RechercheOffreId().execute(idService,dureeOffre);
+                                                        new VerifSouscriptionExistante().execute(idService,dureeOffre);
+                                                        //new RechercheOffreId().execute(idService,dureeOffre);
 
 
                                                     }
@@ -308,10 +325,17 @@ public class ServiceViewActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String[] strings) {
             super.onPostExecute(strings);
+
+            if (menuItem != null){
+                menuItem.collapseActionView();
+                menuItem.setActionView(null);
+            }
+
             if (strings != null){
                 if (strings.length > 1){
                     //Toast.makeText(ServiceViewActivity.this, "charg_terminer", Toast.LENGTH_LONG).show();
                     pbServiceView.setVisibility(View.INVISIBLE);
+
 
                 }
                 else
@@ -331,6 +355,7 @@ public class ServiceViewActivity extends AppCompatActivity {
         }
 
     }
+
 
     //Afficher les données
     private class RequestAllService extends AsyncTask<Void, String, String[]>
@@ -594,13 +619,14 @@ public class ServiceViewActivity extends AppCompatActivity {
     private class RechercheOffreId extends AsyncTask<Integer, String, String[]>
     {
 
-        //int offreduree;
+        String dureeSouscription;
 
         @Override
         protected String[] doInBackground(Integer... params) {
 
             int serviceid = params[0];
             offreduree = params[1];
+            dureeSouscription = String.valueOf(offreduree);
 
             String API = ipOnline+"/offrerest/listobjectoffre/"+serviceid+"/"+offreduree;
 
@@ -656,7 +682,7 @@ public class ServiceViewActivity extends AppCompatActivity {
 
                 String objet = String.valueOf(objetOffre);
 
-                new EnregistrerSouscription().execute(objet);
+                new EnregistrerSouscription().execute(objet,dureeSouscription);
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -675,14 +701,38 @@ public class ServiceViewActivity extends AppCompatActivity {
     }
 
 
+    public String ObtainDate(int dureeSouscription){
+        //Ajout de la durée de la souscription à la date de souscription
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.add(gregorianCalendar.DAY_OF_YEAR,dureeSouscription);
+        DateFormat finDateFormater = new SimpleDateFormat("dd-MM-yyyy");
+        String formatedFinDate = finDateFormater.format(gregorianCalendar.getTime());
+        return formatedFinDate;
+    }
+
     //Enregistrer souscription
     private class EnregistrerSouscription extends AsyncTask<String, String, Message[]> {
 
+        int dureeSouscription;
+        String offre;
+        String dateFinSous;
 
         @Override
         protected Message[] doInBackground(String... params) {
 
             String jsonObject = params[0];
+            //Verifier la durée de la souscription
+            dureeSouscription = Integer.parseInt(params[1]);
+            if (dureeSouscription == 1){
+                dateFinSous = ObtainDate(dureeSouscription);
+                Log.i("dateFinSous", dateFinSous);
+                offre = "Jour";
+            }else if (dureeSouscription == 7){
+                dateFinSous = ObtainDate(dureeSouscription);
+                Log.i("dateFinSous", dateFinSous);
+                offre = "Semaine";
+            }
+
 
             String valeur = null;
             //publishProgress(valeur);
@@ -747,13 +797,20 @@ public class ServiceViewActivity extends AppCompatActivity {
             Log.i("reponse", values[0]);
             if(values[0] == "erreur"){
                 Toast.makeText(ServiceViewActivity.this, R.string.sous_echoue, Toast.LENGTH_LONG).show();
+
             }
             else if (values[0].contains("true") ){
-                Toast.makeText(ServiceViewActivity.this, R.string.sous_reussi, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(ServiceViewActivity.this, R.string.sous_reussi, Toast.LENGTH_SHORT).show();
+
+                //Creation du message de reussite
+                String messageReussite = getResources().getString(R.string.fact_reussi, offre,dateFinSous);
+
+                Toast.makeText(ServiceViewActivity.this, messageReussite, Toast.LENGTH_LONG).show();
                 startActivity(intentAccueil);
 
             }else if (values[0].contains("false") ){
-                Toast.makeText(ServiceViewActivity.this, R.string.sous_echoue, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ServiceViewActivity.this, R.string.fact_echoue, Toast.LENGTH_SHORT).show();
+
             }
 
         }
@@ -1066,9 +1123,99 @@ public class ServiceViewActivity extends AppCompatActivity {
 
     }
 
+    //Verifier si l'utilisateur à deja une offre active
+    private class VerifSouscriptionExistante extends AsyncTask<Integer, String, String>
+    {
+
+        int idOffre;
+        int idService;
+
+        @Override
+        protected String doInBackground(Integer... params) {
+
+            idService = params[0];
+            idOffre = params[1];
+
+            String API = ipOnline+"/souscriptionrest/countsouscription/"+num+"/"+idOffre;
+
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url(API)
+                    .build();
+
+            String reponse = null;
+
+            try {
+                Response response = client.newCall(request).execute();
+                Log.i("ReponsePublication", response.toString());
+                reponse = response.body().string();
+                int messageReponse = response.code();
+                if(messageReponse == 404){
+
+                }
+                else if (messageReponse == 500){
+
+                }else if (messageReponse == 200){
+                    publishProgress(reponse);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                String reponseErreur = e.getMessage();
+                if (reponseErreur.contains("Failed to connect to")){
+                    String messageErreur = "Souscription echoué, verifier votre connexion internet puis reessayer";
+                    return messageErreur;
+
+                }
+            }
+
+
+            return "";
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+            String reponse = values[0];
+            String message = "Vous avez deja une offre" ;
+            if (reponse.contains(message)){
+                //Offre deja existante
+                Snackbar.make(findViewById(R.id.coordServiceView), reponse, Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }else {
+                //Offre non existante
+                Snackbar.make(findViewById(R.id.coordServiceView), reponse, Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+                new RechercheOffreId().execute(idService,idOffre);
+
+            }
+
+
+
+        }
+
+        @Override
+        protected void onPostExecute(String strings) {
+            super.onPostExecute(strings);
+            String reponse = strings;
+            if (reponse != ""){
+                Toast.makeText(ServiceViewActivity.this, reponse, Toast.LENGTH_LONG).show();
+
+            }
+
+        }
+
+    }
 
     //
-    private class VerifSouscriptionExistante extends AsyncTask<Integer, String, String>
+    private class VerifSouscriptionExistanteOld extends AsyncTask<Integer, String, String>
     {
 
 
@@ -1188,12 +1335,18 @@ public class ServiceViewActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
+
         switch (id){
             case R.id.rafraichir:
+                menuItem = item;
+                menuItem.setActionView(R.layout.progressbar);
+                menuItem.expandActionView();
+                //Tache asynchrone pour actualiser
                 new RequestOneService().execute();
+
                 break;
             case R.id.quitter:
-                startActivity(new Intent(getApplicationContext(),AccueilActivity.class));
+                startActivity(new Intent(getApplicationContext(),AccueilNavigationActivity.class));
                 break;
                         /* Vider SharedPreferences*/
             /*case R.id.Vider:

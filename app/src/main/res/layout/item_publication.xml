@@ -4,12 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cardview_light_background">
+    android:background="@color/bgListviewGray"
+    android:elevation="15dp">
 
     <android.support.v7.widget.CardView
         android:id="@+id/cvPublication"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         app:cardBackgroundColor="@color/cardview_light_background"
         app:cardElevation="2dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -18,8 +22,7 @@
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="false">
+            android:layout_height="match_parent">
 
             <TextView
                 android:id="@+id/tvNomService"
@@ -41,9 +44,8 @@
                 android:layout_marginStart="8dp"
                 android:elevation="20dp"
                 android:padding="10dp"
-                android:text="test test test test test test test test test test test "
-                android:textAllCaps="false"
-                android:textColor="@color/colorNoir"
+                android:text="test test"
+                android:textColor="@android:color/black"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/timestamp1" />
@@ -122,9 +124,9 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_weight="2"
-                android:text="Mercredi 02 Mai 2018"
+                android:text="Réçu à 12:00"
                 android:textAlignment="center"
-                android:textAllCaps="true"
+                android:textAllCaps="false"
                 android:textColor="@color/colorPrimaryDark"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -184,5 +186,20 @@
         app:layout_constraintEnd_toEndOf="@+id/cvPublication"
         app:layout_constraintTop_toBottomOf="@+id/cvPublication"
         app:srcCompat="@drawable/star" />
+
+    <TextView
+        android:id="@+id/timestampHeure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:background="@color/cardview_light_background"
+        android:text="Mercredi 22 Juin 2018"
+        android:textAllCaps="true"
+        android:textColor="@color/colorPrimaryDark"
+        android:textStyle="bold|italic"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cvPublication" />
 
 </android.support.constraint.ConstraintLayout>

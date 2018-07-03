@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -80,6 +81,7 @@ public class ServiceActivity extends AppCompatActivity {
     int offreduree;
     Intent intent;
 
+    private MenuItem menuItem;
 
 
 
@@ -266,7 +268,8 @@ public class ServiceActivity extends AppCompatActivity {
                                                 .setPositiveButton("CONFIRMER", new DialogInterface.OnClickListener() {
                                                     public void onClick(DialogInterface dialog, int id) {
                                                         // CONFIRMATION
-                                                        new RechercheOffreId().execute(idService,dureeOffre);
+                                                        new VerifSouscriptionExistante().execute(idService,dureeOffre);
+                                                        //new RechercheOffreId().execute(idService,dureeOffre);
 
                                                     }
                                                 });
@@ -297,8 +300,8 @@ public class ServiceActivity extends AppCompatActivity {
                                                 .setPositiveButton("CONFIRMER", new DialogInterface.OnClickListener() {
                                                     public void onClick(DialogInterface dialog, int id) {
                                                         // CONFIRMATION
-
-                                                        new RechercheOffreId().execute(idService,dureeOffre);
+                                                        new VerifSouscriptionExistante().execute(idService,dureeOffre);
+                                                        //new RechercheOffreId().execute(idService,dureeOffre);
 
 
                                                     }
@@ -334,6 +337,10 @@ public class ServiceActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String[] strings) {
             super.onPostExecute(strings);
+            if (menuItem != null){
+                menuItem.collapseActionView();
+                menuItem.setActionView(null);
+            }
             if (strings != null){
                 if (strings.length > 1){
                     //Toast.makeText(ServiceViewActivity.this, "charg_terminer", Toast.LENGTH_LONG).show();
@@ -1331,15 +1338,38 @@ public class ServiceActivity extends AppCompatActivity {
 
     }
 
+    public String ObtainDate(int dureeSouscription){
+        //Ajout de la durée de la souscription à la date de souscription
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.add(gregorianCalendar.DAY_OF_YEAR,dureeSouscription);
+        DateFormat finDateFormater = new SimpleDateFormat("dd-MM-yyyy");
+        String formatedFinDate = finDateFormater.format(gregorianCalendar.getTime());
+        return formatedFinDate;
+    }
 
     //Enregistrer souscription
     private class EnregistrerSouscription extends AsyncTask<String, String, Message[]> {
 
 
+        int dureeSouscription;
+        String offre;
+        String dateFinSous;
+
         @Override
         protected Message[] doInBackground(String... params) {
 
             String jsonObject = params[0];
+            //Verifier la durée de la souscription
+            dureeSouscription = Integer.parseInt(params[1]);
+            if (dureeSouscription == 1){
+                dateFinSous = ObtainDate(dureeSouscription);
+                Log.i("dateFinSous", dateFinSous);
+                offre = "Jour";
+            }else if (dureeSouscription == 7){
+                dateFinSous = ObtainDate(dureeSouscription);
+                Log.i("dateFinSous", dateFinSous);
+                offre = "Semaine";
+            }
 
             String valeur = null;
                 //publishProgress(valeur);
@@ -1404,11 +1434,17 @@ public class ServiceActivity extends AppCompatActivity {
                 Toast.makeText(ServiceActivity.this, R.string.sous_echoue, Toast.LENGTH_LONG).show();
             }
             else if (values[0].contains("true")){
-                Toast.makeText(ServiceActivity.this, R.string.sous_reussi, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(ServiceActivity.this, R.string.sous_reussi, Toast.LENGTH_SHORT).show();
+                //Creation du message de reussite
+                String messageReussite = getResources().getString(R.string.fact_reussi, offre,dateFinSous);
+
+                Toast.makeText(ServiceActivity.this, messageReussite, Toast.LENGTH_LONG).show();
                 startActivity(intent);
 
             }else if (values[0].contains("false")){
-                Toast.makeText(ServiceActivity.this, R.string.sous_echoue, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(ServiceActivity.this, R.string.sous_echoue, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ServiceActivity.this, R.string.fact_echoue, Toast.LENGTH_SHORT).show();
+
             }
 
         }
@@ -1425,17 +1461,20 @@ public class ServiceActivity extends AppCompatActivity {
 
 
 
-    //
+    //Verifier si l'utilisateur à deja une offre active
     private class VerifSouscriptionExistante extends AsyncTask<Integer, String, String>
     {
 
+        int idOffre;
+        int idService;
 
         @Override
         protected String doInBackground(Integer... params) {
 
-            int idOffre = params[0];
+            idService = params[0];
+            idOffre = params[1];
 
-            String API = ipOnline+"/souscriptionrest/listbymsisdnandoffre/"+num+"/"+idOffre;
+            String API = ipOnline+"/souscriptionrest/countsouscription/"+num+"/"+idOffre;
 
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder()
@@ -1457,7 +1496,6 @@ public class ServiceActivity extends AppCompatActivity {
                 }else if (messageReponse == 200){
                     publishProgress(reponse);
                 }
-                //publishProgress(String.valueOf(offreduree));
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -1465,7 +1503,6 @@ public class ServiceActivity extends AppCompatActivity {
 
 
             return "";
-            //return new String[0];
         }
 
         @Override
@@ -1478,31 +1515,18 @@ public class ServiceActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
-            String valeur = values[0];
-            try {
+            String reponse = values[0];
+            String message = "Vous avez deja une offre" ;
+            if (reponse.contains(message)){
+                //Offre deja existante
+                Snackbar.make(findViewById(R.id.coordService), reponse, Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }else {
+                //Offre non existante
+                Snackbar.make(findViewById(R.id.coordService), reponse, Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+                new RechercheOffreId().execute(idService,idOffre);
 
-                JSONArray reponseBody = new JSONArray(valeur);
-                if (reponseBody.length() == 0){
-                    idSouscription = 0;
-                }else {
-                    JSONObject sousObjet = reponseBody.getJSONObject(0);
-                    idSouscription = sousObjet.getInt("souscriptionid");
-                    String oldFinDate1 = sousObjet.getString("souscriptionfindate");
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                    try {
-                        oldFinDate = formatter.parse(oldFinDate1);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-
-
-                    oldDuree = sousObjet.getInt("souscriptionduree");
-                }
-                new EnrSouscription().execute(offreduree);
-
-
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
 
 
@@ -1552,7 +1576,12 @@ public class ServiceActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         switch (id){
             case R.id.rafraichir:
+                menuItem = item;
+                menuItem.setActionView(R.layout.progressbar);
+                menuItem.expandActionView();
+                //Tache asynchrone pour le rafraichissement
                 new RequestOneService().execute();
+
                 break;
             case R.id.quitter:
                 startActivity(new Intent(getApplicationContext(),AccueilActivity.class));
