@@ -6,14 +6,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
@@ -82,10 +86,8 @@ public class AccueilActivity extends AppCompatActivity {
 
     ListView listView1;
 
-
-
-
-
+    SwipeRefreshLayout swiperefresh;
+    SwipeRefreshLayout swiperefreshAbonnement;
 
 
     @Override
@@ -97,6 +99,7 @@ public class AccueilActivity extends AppCompatActivity {
         //Changer le menu toolbar
         //toolbar.inflateMenu(R.menu.menu_service);
 
+
         intent = new Intent(AccueilActivity.this,AccueilActivity.class);
 
         listView1 = (ListView)findViewById(R.id.lvSouscription);
@@ -104,6 +107,29 @@ public class AccueilActivity extends AppCompatActivity {
 
         tvTab = (TextView)findViewById(R.id.tvTab);
         gridView = (GridView) findViewById(R.id.gvService);
+
+        swiperefresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
+        swiperefreshAbonnement = (SwipeRefreshLayout) findViewById(R.id.swiperefreshAbonnement);
+
+        //swiperefresh.setColorSchemeColors(getResources().getColor(R.color.colorPrimaryDark));
+        swiperefresh.setColorSchemeResources(R.color.colorPrimaryDark);
+        //swiperefreshAbonnement.setColorSchemeColors(getResources().getColor(R.color.colorPrimaryDark));
+        swiperefreshAbonnement.setColorSchemeResources(R.color.colorPrimaryDark);
+        //Evenement lorsque rafraichi la page avec swiperefresh Souscription
+        swiperefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new RequestServiceSouscrit().execute();
+            }
+        });
+
+        //Evenement lorsque rafraichi la page avec swiperefresh Abonnement
+        swiperefreshAbonnement.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new RequestOneService().execute();
+            }
+        });
 
         //Traitement pour les onglets
         TabHost mTabHost = (TabHost)findViewById(R.id.tabHost);
@@ -144,7 +170,8 @@ public class AccueilActivity extends AppCompatActivity {
 
 
         new RequestServiceSouscrit().execute();
-        new RequestClient().execute(num);
+
+
 
     }
 
@@ -300,6 +327,9 @@ public class AccueilActivity extends AppCompatActivity {
             String reponse = null;
 
             try {
+
+
+
                 Response response = client.newCall(request).execute();
                 Log.i("ReponsePublication", response.toString());
                 reponse = response.body().string();
@@ -460,6 +490,8 @@ public class AccueilActivity extends AppCompatActivity {
 
 
             progressBar.setVisibility(View.INVISIBLE);
+            swiperefresh.setRefreshing(false);
+
 
 
         }
@@ -873,6 +905,8 @@ public class AccueilActivity extends AppCompatActivity {
                 if (strings.length > 1){
                     Toast.makeText(AccueilActivity.this, R.string.charg_terminer, Toast.LENGTH_LONG).show();
                     tvTab.setVisibility(View.GONE);
+                    swiperefreshAbonnement.setRefreshing(false);
+
                 }
                 else
                     Toast.makeText(AccueilActivity.this, R.string.charg_vide, Toast.LENGTH_LONG).show();
@@ -880,6 +914,8 @@ public class AccueilActivity extends AppCompatActivity {
             }
             else
                 Toast.makeText(AccueilActivity.this, R.string.enr_echoue, Toast.LENGTH_LONG).show();
+            swiperefreshAbonnement.setRefreshing(false);
+
 
 
         }
@@ -1387,31 +1423,33 @@ public class AccueilActivity extends AppCompatActivity {
 
                 sharedPreferences = getBaseContext().getSharedPreferences(PREFS, MODE_PRIVATE);
                 OTP = sharedPreferences.getString(PREFS_OTP, null);
-                if (otpClientOnline.equals(OTP) ){
-                    Toast.makeText(AccueilActivity.this, "Authentification reussi", Toast.LENGTH_SHORT).show();
-                }else {
+                if (OTP != null){
+                    if (otpClientOnline.equals(OTP) ){
+                        Toast.makeText(AccueilActivity.this, "Authentification reussi", Toast.LENGTH_SHORT).show();
+                    }else {
 
-                    //Popup
-                    AlertDialog.Builder builder = new AlertDialog.Builder(AccueilActivity.this);
-                    builder.setMessage("Vous serez deconnecter pour votre nouvel equipement...")
-                            .setTitle("Deconnexion")
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    //OK
+                        //Popup
+                        AlertDialog.Builder builder = new AlertDialog.Builder(AccueilActivity.this);
+                        builder.setMessage("Vous serez deconnecter pour votre nouvel equipement...")
+                                .setTitle("Deconnexion")
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        //OK
                                             /* Vider SharedPreferences*/
-                                    sharedPreferences.edit().clear().commit();
-                                    //returner à l'accueil
-                                    Intent intent = new Intent(AccueilActivity.this, SplashScreenActivity.class);
-                                    startActivity(intent);
-                                    finish(); //fermer l'activité en cours
+                                        sharedPreferences.edit().clear().commit();
+                                        //returner à l'accueil
+                                        Intent intent = new Intent(AccueilActivity.this, SplashScreenActivity.class);
+                                        startActivity(intent);
+                                        finish(); //fermer l'activité en cours
 
-                                }
-                            });
-                    // Create the AlertDialog object and return it
-                    AlertDialog dialog1 =  builder.create();
-                    dialog1.show();
+                                    }
+                                });
+                        // Create the AlertDialog object and return it
+                        AlertDialog dialog1 =  builder.create();
+                        dialog1.show();
 
+                    }
                 }
 
 
@@ -1523,6 +1561,16 @@ public class AccueilActivity extends AppCompatActivity {
                 idClientOnline = clientid;
                 otpClientOnline = clientOTP;
 
+                //enregistrer idClientOnline
+                sharedPreferences
+                        .edit()
+                        .putInt("PREFS_ID_ONLINE", clientid)
+                        .apply();
+
+                //Verifier le client connecté
+                new RequestClient().execute(num);
+
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -1546,12 +1594,16 @@ public class AccueilActivity extends AppCompatActivity {
     {
 
         //int offreduree;
+        String dureeSouscription;
+
 
         @Override
         protected String[] doInBackground(Integer... params) {
 
             int serviceid = params[0];
             offreduree = params[1];
+            dureeSouscription = String.valueOf(offreduree);
+
 
             String API = ipOnline+"/offrerest/listobjectoffre/"+serviceid+"/"+offreduree;
 
@@ -1607,7 +1659,7 @@ public class AccueilActivity extends AppCompatActivity {
 
                 String objet = String.valueOf(objetOffre);
 
-                new EnregistrerSouscription().execute(objet);
+                new EnregistrerSouscription().execute(objet,dureeSouscription);
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -1852,11 +1904,15 @@ public class AccueilActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         switch (id){
             case R.id.rafraichir:
+                swiperefresh.setRefreshing(true);
                 new RequestServiceSouscrit().execute();
                 new RequestOneService().execute();
                 break;
             case R.id.codeQR:
                 startActivity(new Intent(AccueilActivity.this,QrcodeActivity.class));
+                break;
+            case R.id.parametre:
+                startActivity(new Intent(AccueilActivity.this,Parametre2Activity.class));
                 break;
         }
 

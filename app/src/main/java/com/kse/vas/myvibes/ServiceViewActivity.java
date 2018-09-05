@@ -1346,7 +1346,7 @@ public class ServiceViewActivity extends AppCompatActivity {
 
                 break;
             case R.id.quitter:
-                startActivity(new Intent(getApplicationContext(),AccueilNavigationActivity.class));
+                startActivity(new Intent(getApplicationContext(),AccueilActivity.class));
                 break;
                         /* Vider SharedPreferences*/
             /*case R.id.Vider:

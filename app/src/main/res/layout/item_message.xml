@@ -2,6 +2,7 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/constraintMessage"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:textAlignment="viewEnd"
@@ -46,5 +47,21 @@
             android:textColor="@android:color/background_light"
             android:textSize="12sp" />
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/ivValidation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/LinearLayoutMessage"
+        app:layout_constraintStart_toEndOf="@+id/LinearLayoutMessage"
+        app:srcCompat="@drawable/baseline_done_black_24" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.92" />
 
 </android.support.constraint.ConstraintLayout>

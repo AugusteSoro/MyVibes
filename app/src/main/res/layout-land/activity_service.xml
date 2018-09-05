@@ -24,7 +24,7 @@
     <include layout="@layout/content_service" />
 
     <ProgressBar
-        android:id="@+id/pbService2"
+        android:id="@+id/pbService"
         style="?android:attr/progressBarStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

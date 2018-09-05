@@ -19,12 +19,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -40,6 +46,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,10 +74,12 @@ public class CommentaireActivity extends AppCompatActivity {
     CustomAdapterCommentaire customAdapterCommentaire;
     List<Message> messageArrayList = null;
     Message message1 = null;
+    ImageView ivValidation;
 
 
     String messageSaisi;
     int Idpublication;
+    int serviceId;
 
     String DATA;
     File file;
@@ -87,16 +96,49 @@ public class CommentaireActivity extends AppCompatActivity {
 
 
     // Create a handler which can run code periodically
-    static final int POLL_INTERVAL = 2000; // milliseconds
+    static final int POLL_INTERVAL = 30000; // milliseconds
     Handler myHandler = new Handler();  // android.os.Handler
-    Runnable mRefreshMessagesRunnable = new Runnable() {
+    Runnable mRefreshCommentaireRunnable = new Runnable() {
         @Override
         public void run() {
-            new ReceptionMessage().execute();
+            //new ReceptionMessage().execute();
+
+            String num = ObtainNum();
+            new RequestServiceSouscrit().execute(num);
+
             myHandler.postDelayed(this, POLL_INTERVAL);
         }
     };
 
+
+    public void StopRunnable(){
+        myHandler.removeCallbacks(mRefreshCommentaireRunnable);
+        Log.i("Stop alerte", "Arrêt des recherches de nouveaux messages");
+        Toast.makeText(this, getResources().getString(R.string.sous_expiree), Toast.LENGTH_LONG).show();
+        ToastPerso();
+    }
+
+    public void ToastPerso(){
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.custom_toast,
+                (ViewGroup) findViewById(R.id.custom_toast_container));
+
+        TextView text = (TextView) layout.findViewById(R.id.tvCustomToast);
+        text.setText(R.string.sous_expiree);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
+    }
+
+    public String ObtainNum()
+    {
+        sharedPreferences = getBaseContext().getSharedPreferences("PREFS", MODE_PRIVATE);
+        String num = sharedPreferences.getString("PREFS_NUM", null);
+        return num;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +153,7 @@ public class CommentaireActivity extends AppCompatActivity {
         message = (EditText) findViewById(R.id.message);
         btn_send = (ImageButton)findViewById(R.id.btn_send);
         fbDescendre = (FloatingActionButton)findViewById(R.id.fbDescendre);
+        ivValidation = (ImageView) findViewById(R.id.ivValidation);
 
         messageArrayList = new ArrayList<>();
         message1 = new Message("Hello","Test");
@@ -122,13 +165,16 @@ public class CommentaireActivity extends AppCompatActivity {
 
 
 
-
-        //myHandler.postDelayed(mRefreshMessagesRunnable, POLL_INTERVAL);
+        myHandler.postDelayed(mRefreshCommentaireRunnable, POLL_INTERVAL);
 
         //new ReceptionMessage().execute();
 
         Intent intent = getIntent();
         Idpublication = intent.getIntExtra("Idpublication",0);
+
+        serviceId = intent.getIntExtra("serviceId", 0);
+
+
         COMMENT_USER = "COMMENT_USER"+Idpublication;
 
 
@@ -269,7 +315,6 @@ public class CommentaireActivity extends AppCompatActivity {
     //TODO : Afficher l'heure dans l'affichage des messages
     private class EnvoiMessage extends AsyncTask<Void, String, Message[]> {
 
-
         @Override
         protected Message[] doInBackground(Void... voids) {
 
@@ -279,15 +324,20 @@ public class CommentaireActivity extends AppCompatActivity {
             Log.i("Message saisi", "message: "+messageSaisi);
 
             jsonObject = new JSONObject();
-            JSONObject objetClient = new JSONObject();
-            JSONObject objetPublication = new JSONObject();
+            JSONObject objetAbonne = new JSONObject();
+            JSONObject objetAlerte = new JSONObject();
 
-            Intent intent = getIntent();
-            int myclientid = intent.getIntExtra("clientIdOnline",0);
+            //Intent intent = getIntent();
+            //int myclientid = intent.getIntExtra("clientIdOnline",0);
+            //Recuperer idclientonline dans sharedpreferences
+            sharedPreferences = getBaseContext().getSharedPreferences("PREFS", MODE_PRIVATE);
+            int myclientid = sharedPreferences.getInt("PREFS_ID_ONLINE", 0);
+
+
             try {
 
-                objetClient.put("clientid",myclientid);
-                objetPublication.put("publicationid",Idpublication);
+                objetAbonne.put("abonneid",myclientid);
+                objetAlerte.put("alerteid",Idpublication);
                 jsonObject.put("commentairecontenu",messageSaisi);
 
                 //Formater la date du jour
@@ -306,8 +356,8 @@ public class CommentaireActivity extends AppCompatActivity {
                 jsonObject.put("commentairedatecreation",dateJour);
                 jsonObject.put("commentairevue",false);
                 jsonObject.put("commentaireenable",true);
-                jsonObject.putOpt("client",objetClient);
-                jsonObject.putOpt("publication",objetPublication);
+                jsonObject.putOpt("abonne_",objetAbonne);
+                jsonObject.putOpt("alerte",objetAlerte);
 
 
                 Log.i("objetJson", String.valueOf(jsonObject));
@@ -369,10 +419,11 @@ public class CommentaireActivity extends AppCompatActivity {
             //pbChargement.setVisibility(View.VISIBLE);
             if(values[0] == "erreur"){
                 Toast.makeText(CommentaireActivity.this, R.string.enr_echoue, Toast.LENGTH_LONG).show();
+
             }
             else if (values[0] == "reussite"){
                 Toast.makeText(CommentaireActivity.this, R.string.enr_reussi, Toast.LENGTH_SHORT).show();
-                //reset();
+                reset();
             }
 
         }
@@ -386,9 +437,9 @@ public class CommentaireActivity extends AppCompatActivity {
 
         }
 
-        /*private void reset() {
+        private void reset() {
             message.setText("");
-        }*/
+        }
 
 
     }
@@ -396,18 +447,18 @@ public class CommentaireActivity extends AppCompatActivity {
 
     //reception des messages
     //TODO : Afficher les messages les plus recents en bas de la liste des commentaires
-    //TODO : Afficher les messages hors ligne
 
-
-    private class ReceptionMessage extends AsyncTask<Void, String, Boolean>
+    private class ReceptionMessage extends AsyncTask<Integer, String, Boolean>
     {
 
         @Override
-        protected Boolean doInBackground(Void... voids) {
+        protected Boolean doInBackground(Integer... params) {
+
+            int commentaireId = params[0];
 
             //URL
-            String API = ipOffline+"/commentairerest/listallcomment/"+Idpublication;
-            //String API = "http://192.168.43.186:8080/message/listallmessage";
+            //String API = ipOffline+"/commentairerest/listallcomment/"+Idpublication;
+            String API = ipOffline+"/commentairerest/listnewcomment/"+Idpublication+"/"+commentaireId;
 
             /*Uri.Builder uriBuilder = new Uri.Builder();
             uriBuilder.scheme("http")
@@ -918,7 +969,6 @@ public class CommentaireActivity extends AppCompatActivity {
         notificationManager.notify(notificationId, mBuilder.build());
 
     }
-    String tmp = null;
 
     public void sendMessage(String commentaire){
         Date now = new Date();
@@ -1127,6 +1177,8 @@ public class CommentaireActivity extends AppCompatActivity {
             //Log.i("GSON", gson.toJson(messageArrayList));
             customAdapterCommentaire.add(new Message(message.getText().toString().trim(), formattedDate));
             customAdapterCommentaire.notifyDataSetChanged();
+            //Enregistrement du message en bd
+            new EnvoiMessage().execute();
 
 
         }else {
@@ -1162,10 +1214,14 @@ public class CommentaireActivity extends AppCompatActivity {
                 customAdapterCommentaire = new CustomAdapterCommentaire(getApplicationContext(),messageArrayList);
                 listView1.setAdapter(customAdapterCommentaire);
                 customAdapterCommentaire.notifyDataSetChanged();
+                //Enregistrement du message en bd
+                new EnvoiMessage().execute();
 
             }else {
                 customAdapterCommentaire.add(new Message(message.getText().toString().trim(), formattedDate));
                 customAdapterCommentaire.notifyDataSetChanged();
+                //Enregistrement du message en bd
+                new EnvoiMessage().execute();
 
             }
 
@@ -1218,6 +1274,289 @@ public class CommentaireActivity extends AppCompatActivity {
 
 
         //message.setText("");
+    }
+
+    private class RequestServiceSouscrit extends AsyncTask<String, String, String[]>
+    {
+
+        @Override
+        protected String[] doInBackground(String... params) {
+
+            String num = params[0];
+            //URL
+            //String API = ipOffline+"/servicerest/listDistinctservice/"+num;
+            String API = ipOnline+"/servicerest/listfindate/"+num;
+
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url(API)
+                    .build();
+
+            String publication = null;
+            String reponse = null;
+
+            try {
+                Response response = client.newCall(request).execute();
+                Log.i("ReponsePublication", response.toString());
+                reponse = response.body().string();
+                publishProgress(reponse);
+
+
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            JSONArray reponseBody = null;
+            String[] name = null;
+            try {
+                if (reponse != null){
+                    reponseBody = new JSONArray(reponse);
+                    name = new String[reponseBody.length()];
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+
+
+            return name;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+
+            String result = values[0];
+            JSONArray reponseBody = null;
+
+            try {
+                if (result != null){
+
+                    reponseBody = new JSONArray(result);
+
+                    if (reponseBody.length() > 0){
+                        //Toast.makeText(ItemAccueilActivity.this, "OK OK", Toast.LENGTH_LONG).show();
+                        long unixSecondsParse = reponseBody.getLong(0);
+                        String unixSecondsString = String.valueOf(unixSecondsParse);
+                        String b = unixSecondsString.substring(0,10);
+                        long unixSeconds = Integer.parseInt(b);
+                        Log.i("long", String.valueOf(unixSeconds));
+
+
+                        // convert seconds to milliseconds
+                        Date date = new java.util.Date(unixSeconds*1000L);
+                        // the format of your date
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                        // give a timezone reference for formatting (see comment at the bottom)
+                        //sdf.setTimeZone(java.util.TimeZone.getTimeZone("GMT-4"));
+                        String dateFinSous1 = sdf.format(date);
+
+                        //Formater la date du jour
+                        Date now = new Date();
+                        String dateJour1 = sdf.format(now);
+                        try {
+                            Date dateFinSous =  sdf.parse(dateFinSous1);
+                            Date dateJour =  sdf.parse(dateJour1);
+
+                            if (dateFinSous.before(dateJour)){
+                                //Souscription invalide
+                                Log.i("Commentaire", "Souscription perdu");
+                                //Arreter la recherche des messages
+                                StopRunnable();
+
+                            }else {
+                                //Souscription valide
+                                Log.i("Commentaire", "Souscription valider");
+                                new VerificationCommentaire().execute();
+
+                            }
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+
+
+                    }
+
+                    else if (reponseBody.length() == 0){
+                        //Toast.makeText(ItemAccueilActivity.this, "NON NON", Toast.LENGTH_LONG).show();
+                        StopRunnable();
+                    }
+
+
+
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            super.onPostExecute(strings);
+            /*if (strings != null){
+                if (strings.length > 0){
+                    //Toast.makeText(ItemAccueilActivity.this, "OK OK", Toast.LENGTH_LONG).show();
+                    new VerificationPublication().execute();
+                }
+
+                else if (strings.length == 0){
+                    //Toast.makeText(ItemAccueilActivity.this, "NON NON", Toast.LENGTH_LONG).show();
+                    StopRunnable();
+                }
+
+            }*/
+
+        }
+
+    }
+
+
+    private class VerificationCommentaire extends AsyncTask<Void, String, String[]>
+    {
+
+
+        //ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar1);
+
+
+        //fonction Okhttp get
+        public String run(String API){
+
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url(API)
+                    .build();
+
+            String publication = null;
+            String reponse = null;
+
+            try {
+                Response response = client.newCall(request).execute();
+                Log.i("ReponseMessage", response.toString());
+                //publishProgress(valeur);
+                reponse = response.body().string();
+                publishProgress(reponse);
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return reponse;
+        }
+
+        @Override
+        protected String[] doInBackground(Void... voids) {
+
+            String API = ipOffline+"/commentairerest/idlastcomment/"+Idpublication;
+
+            String reponse = run(API);
+
+
+
+
+            JSONArray reponseBody = null;
+            String[] message = null;
+            try {
+                if (reponse != null){
+                    reponseBody = new JSONArray(reponse);
+                    message = new String[reponseBody.length()];
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+
+
+            return message;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+            int lastMessageId;
+
+            String valeur = values[0];
+            try {
+
+                JSONArray idLastMessage = new JSONArray(valeur);
+
+                lastMessageId = idLastMessage.getInt(0);
+                Log.i("Commentaireid", String.valueOf(lastMessageId));
+                //tableauId[0] = idLastMessage;
+
+                //Verifier si ya de nouveaux messages
+                int lastId = lastMessageId;
+                String idmessage = String.valueOf(lastId);
+
+                //Verification d'existance du ID
+                SharedPreferences sharedPreferences2 = getBaseContext().getSharedPreferences("IDLASTCOMMENT", MODE_PRIVATE);
+                if (sharedPreferences2.contains("LAST_COMMENT_ID"+Idpublication)) {
+
+                    idmessage = sharedPreferences2.getString("LAST_COMMENT_ID"+Idpublication, null);
+
+                    if (lastId == Integer.valueOf(idmessage)){
+                        //Toast.makeText(ItemAccueilActivity.this, "Aucune nouvelle alerte", Toast.LENGTH_SHORT).show();
+                    }else if (lastId > Integer.valueOf(idmessage)){
+                        Toast.makeText(CommentaireActivity.this, "Nouveau message", Toast.LENGTH_SHORT).show();
+                        //Afficher la nouvelle Alerte
+                        sharedPreferences2 = getBaseContext().getSharedPreferences("IDLASTCOMMENT", MODE_PRIVATE);
+                        sharedPreferences2
+                                .edit()
+                                .putString("LAST_COMMENT_ID"+Idpublication, String.valueOf(lastId))
+                                .apply();
+
+                        new ReceptionMessage().execute(Integer.valueOf(idmessage));
+
+                    }
+
+
+                }else{
+                    sharedPreferences2 = getBaseContext().getSharedPreferences("IDLASTCOMMENT", MODE_PRIVATE);
+                    sharedPreferences2
+                            .edit()
+                            .putString("LAST_COMMENT_ID"+Idpublication, String.valueOf(idmessage))
+                            .apply();
+                }
+
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            super.onPostExecute(strings);
+            if (strings != null){
+                if (strings.length > 0) {
+                }
+                else {
+
+                }
+
+            }
+            else {
+
+            }
+
+
+
+        }
+
+
     }
 
 

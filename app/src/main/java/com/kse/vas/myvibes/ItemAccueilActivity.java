@@ -27,9 +27,12 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -60,6 +63,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.ExecutionException;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -114,8 +118,40 @@ public class ItemAccueilActivity extends AppCompatActivity {
 
     public void StopRunnable(){
         myHandler.removeCallbacks(mRefreshMessagesRunnable);
-        Log.i("Stop alerte", "Arrêt des recherches");
+        Log.i("Stop alerte", "Arrêt des recherches de nouveaux messages");
+        Toast.makeText(this, getResources().getString(R.string.sous_expiree), Toast.LENGTH_LONG).show();
+        ToastPerso2();
+    }
 
+    public void ToastPerso(){
+        Toast toast = Toast.makeText(this, getResources().getString(R.string.sous_expiree), Toast.LENGTH_LONG);
+        View toastview = toast.getView();
+
+        TextView tv = (TextView) toastview.findViewById(android.R.id.message);
+        tv.setTextSize(18);
+        tv.setTextColor(Color.parseColor("#ffffff"));
+        tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+        tv.setCompoundDrawablePadding(15);
+        toastview.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+        //toastview.setBackgroundColor(Color.parseColor("#00000000"));
+
+        toast.show();
+    }
+
+    public void ToastPerso2(){
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.custom_toast,
+                (ViewGroup) findViewById(R.id.custom_toast_container));
+
+        TextView text = (TextView) layout.findViewById(R.id.tvCustomToast);
+        //text.setText(getResources().getString(R.string.sous_expiree));
+        text.setText(R.string.sous_expiree);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
     }
 
     public String ObtainNum()
@@ -203,6 +239,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String nomService = intent.getStringExtra("nom");
 
+
         sharedPreferences = getBaseContext().getSharedPreferences(PREFS, MODE_PRIVATE);
         String json;
         List<Publication> publications = new ArrayList<>();
@@ -217,14 +254,16 @@ public class ItemAccueilActivity extends AppCompatActivity {
                 }
                 for (int j = 0; j < tableau.length(); j++) {
                     objetMessage = tableau.getJSONObject(j);
+                    int publicationPublication1 = objetMessage.getInt("idmessage");
                     String publicationContenu1 = objetMessage.getString("alertemessage");
                     String publicationDateCreation1 = objetMessage.getString("alertedatecreation");
+                    String pathImage1 = objetMessage.getString("alerteimage");
                     Collections.reverse(publications);
-                    publications.add(new Publication(publicationContenu1, publicationDateCreation1));
+                    publications.add(new Publication(publicationPublication1,publicationContenu1, publicationDateCreation1,pathImage1));
 
                 }
                 Collections.reverse(publications);
-                customAdapterMessage = new CustomAdapterMessage(getApplicationContext(), nomService, publications);
+                customAdapterMessage = new CustomAdapterMessage(getApplicationContext(),serviceId, nomService, publications);
                 gridView1.setAdapter(customAdapterMessage);
                 customAdapterMessage.notifyDataSetChanged();
 
@@ -459,7 +498,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                     String publicationContenu = elementi.get("publicationcontenu").toString();
                     String publicationDateCreation = elementi.get("publicationdatecreation").toString();
                     int publicationNbreVue = elementi.getInt("publicationnbrevue");
-                    //String publicationImage = elementi.get("publicationimage").toString();
+                    String publicationImage = elementi.get("publicationimage").toString();
 
                     tableauId[i] = publicationid;
                     tableauMessage[i] = publicationContenu;
@@ -469,7 +508,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                     //tableauImage[i] = publicationImage;
 
 
-                    publicationArrayList.add(new Publication(publicationContenu,publicationDateCreation));
+                    publicationArrayList.add(new Publication(publicationContenu,publicationDateCreation,publicationImage));
 
 
                     sharedPreferences = getBaseContext().getSharedPreferences(PREFS, MODE_PRIVATE);
@@ -605,7 +644,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                                 objetMessage = tableau.getJSONObject(j);
                                 String publicationContenu1 = objetMessage.getString("publicationContenu");
                                 String publicationDateCreation1 = objetMessage.getString("publicationDateCreation");
-                                publications.add(new Publication(publicationContenu1,publicationDateCreation1));
+                                publications.add(new Publication(publicationContenu1,publicationDateCreation1,publicationImage));
 
 
                             }
@@ -637,7 +676,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                                 .putString(PUBLICATION_USER, String.valueOf(tableau))
                                 .apply();
                         //Log.i("GSON", gson.toJson(messageArrayList));
-                        customAdapterMessage = new CustomAdapterMessage(ItemAccueilActivity.this,nomService,publications);
+                        customAdapterMessage = new CustomAdapterMessage(ItemAccueilActivity.this,serviceId,nomService,publications);
                         gridView1.setAdapter(customAdapterMessage);
                         customAdapterMessage.notifyDataSetChanged();
                         //Afficher la derniere ligne
@@ -677,12 +716,12 @@ public class ItemAccueilActivity extends AppCompatActivity {
                                 .apply();
 
                         if (customAdapterMessage == null){
-                            customAdapterMessage = new CustomAdapterMessage(getApplicationContext(),nomService,publicationArrayList);
+                            customAdapterMessage = new CustomAdapterMessage(getApplicationContext(),serviceId,nomService,publicationArrayList);
                             gridView1.setAdapter(customAdapterMessage);
                             customAdapterMessage.notifyDataSetChanged();
 
                         }else {
-                            customAdapterMessage.add(new Publication(publicationContenu,publicationDateCreation));
+                            customAdapterMessage.add(new Publication(publicationContenu,publicationDateCreation,publicationImage));
                             customAdapterMessage.notifyDataSetChanged();
 
                         }
@@ -994,7 +1033,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
         protected String[] doInBackground(Integer... params) {
 
             int alerteid = params[0];
-            String API = ipOnline+"/alerterest/listallalerte/"+ serviceId+"/"+alerteid;
+            String API = ipOffline+"/alerterest/listallalerte/"+ serviceId+"/"+alerteid;
 
             String reponse = run(API);
 
@@ -1058,11 +1097,13 @@ public class ItemAccueilActivity extends AppCompatActivity {
                 //intent.putExtra("clientIdOnline",clientIdOnline);
                 int clientIdOnline = intent.getIntExtra("clientIdOnline",0);
 
+                String pathImage = null;
+
 
                 int i;
 
 
-                //Prendre les 3 dernieres publications
+                //Prendre les dernieres publications
                 for(i=0; i < tableauId.length; i++) {
                     JSONObject elementi = reponseBody.getJSONObject(i);
 
@@ -1070,7 +1111,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                     String publicationContenu = elementi.get("alertemessage").toString();
                     String publicationDateCreation = elementi.get("alertedatecreation").toString();
                     //int publicationNbreVue = elementi.getInt("publicationnbrevue");
-                    //String publicationImage = elementi.get("publicationimage").toString();
+                    String publicationImage = elementi.get("alerteimage").toString();
 
 
                     tableauId[i] = publicationid;
@@ -1080,10 +1121,25 @@ public class ItemAccueilActivity extends AppCompatActivity {
                     //tableauDate[i] = dateToday;
                     tableauDate[i] = publicationDateCreation;
                     //tableauNbreVue[i] = publicationNbreVue;
-                    //tableauImage[i] = publicationImage;
+                    tableauImage[i] = publicationImage;
+
+                    //Enregistrer l'image puis retourner le path
+                    if (publicationImage != "null"){
+                        if (publicationImage.contains("http://")){
+                            pathImage = new getBitmapFromURL().execute(publicationImage).get();
+                            Log.i("pathImage", pathImage);
+                        }else{
+                            Log.i("URL invalide", "URL invalide");
+                            pathImage = "0";
+
+                        }
+
+                    }else {
+                        pathImage = "0";
+                    }
 
 
-                    publicationArrayList.add(new Publication(publicationContenu,publicationDateCreation));
+                    publicationArrayList.add(new Publication(publicationid,publicationContenu,publicationDateCreation,pathImage));
 
 
 
@@ -1097,9 +1153,11 @@ public class ItemAccueilActivity extends AppCompatActivity {
                             JSONArray tableau = new JSONArray(json);
                             for (int j=0; j<tableau.length(); j++){
                                 objetMessage = tableau.getJSONObject(j);
+                                int publicationId1 = objetMessage.getInt("idmessage");
                                 String publicationContenu1 = objetMessage.getString("alertemessage");
                                 String publicationDateCreation1 = objetMessage.getString("alertedatecreation");
-                                publications.add(new Publication(publicationContenu1,publicationDateCreation1));
+                                String publicationAlerte1 = objetMessage.getString("alerteimage");
+                                publications.add(new Publication(publicationId1,publicationContenu1,publicationDateCreation1,publicationAlerte1));
 
                             }
                         } catch (JSONException e) {
@@ -1115,11 +1173,13 @@ public class ItemAccueilActivity extends AppCompatActivity {
                             objetMessage1.put("idmessage",publicationid);
                             objetMessage1.put("alertemessage",publicationContenu);
                             objetMessage1.put("alertedatecreation",publicationDateCreation);
+                            objetMessage1.put("alerteimage",pathImage);
 
-                            publications.add(new Publication(publicationContenu,publicationDateCreation));
+                            publications.add(new Publication(publicationid,publicationContenu,publicationDateCreation,pathImage));
 
 
                             tableau.put(objetMessage1);
+
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -1136,7 +1196,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                         //Log.i("GSON", gson.toJson(messageArrayList));
 
                         Collections.reverse(publications);
-                        customAdapterMessage = new CustomAdapterMessage(ItemAccueilActivity.this,nomService,publications);
+                        customAdapterMessage = new CustomAdapterMessage(ItemAccueilActivity.this,serviceId,nomService,publications);
                         gridView1.setAdapter(customAdapterMessage);
                         customAdapterMessage.notifyDataSetChanged();
 
@@ -1145,8 +1205,6 @@ public class ItemAccueilActivity extends AppCompatActivity {
 
                         //Afficher la derniere ligne
                         //gridView1.setSelection(gridView1.getCount());
-
-
 
 
 
@@ -1165,6 +1223,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
                             objetMessage.put("idmessage",publicationid);
                             objetMessage.put("alertemessage",publicationContenu);
                             objetMessage.put("alertedatecreation",publicationDateCreation);
+                            objetMessage.put("alerteimage",pathImage);
 
                             tableau.put(objetMessage);
 
@@ -1182,12 +1241,12 @@ public class ItemAccueilActivity extends AppCompatActivity {
 
                         if (customAdapterMessage == null){
                             Collections.reverse(publications);
-                            customAdapterMessage = new CustomAdapterMessage(getApplicationContext(),nomService,publicationArrayList);
+                            customAdapterMessage = new CustomAdapterMessage(getApplicationContext(),serviceId,nomService,publicationArrayList);
                             gridView1.setAdapter(customAdapterMessage);
                             customAdapterMessage.notifyDataSetChanged();
 
                         }else {
-                            customAdapterMessage.add(new Publication(publicationContenu,publicationDateCreation));
+                            customAdapterMessage.add(new Publication(publicationid,publicationContenu,publicationDateCreation,pathImage));
                             customAdapterMessage.notifyDataSetChanged();
 
                         }
@@ -1434,6 +1493,10 @@ public class ItemAccueilActivity extends AppCompatActivity {
 
             } catch (JSONException e) {
                 e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             }
 
         }
@@ -1502,7 +1565,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
         @Override
         protected String[] doInBackground(Void... voids) {
 
-            String API = ipOnline+"/alerterest/listallalerte/"+ serviceId;
+            String API = ipOffline+"/alerterest/listallalerte/"+ serviceId;
 
             String reponse = run(API);
 
@@ -1679,14 +1742,12 @@ public class ItemAccueilActivity extends AppCompatActivity {
     }
 
 
-    //TODO : Fonction pour générer des noms pour les images
-    public String[] saveImageToExternalStorage(Bitmap[] image) {
+    public String saveImageToExternalStorage1(Bitmap image) {
         String fullPath = Environment.getExternalStorageDirectory().getAbsolutePath() + APP_PATH_SD_CARD + APP_THUMBNAIL_PATH_SD_CARD;
         //String fullPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/storage/myvibes/images/";
 
-        String[] pathImage = new String[image.length];
-        for (int i = 0; i < image.length; i++) {
 
+        String pathImage = null;
 
         try {
             File dir = new File(fullPath);
@@ -1700,21 +1761,65 @@ public class ItemAccueilActivity extends AppCompatActivity {
             fOut = new FileOutputStream(file);
 
             // 100 means no compression, the lower you go, the stronger the compression
-            image[i].compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+            image.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
             fOut.flush();
             fOut.close();
 
             MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
-            pathImage[i] = file.getAbsolutePath();
+            pathImage = file.getAbsolutePath();
         } catch (Exception e) {
             Log.e("saveToExternalStorage()", e.getMessage());
-            return pathImage;
         }
 
-    }
 
         return pathImage;
 
+    }
+
+    public String saveImageToExternalStorage(Bitmap image) {
+
+        String pathImage = null;
+
+            String fullPath = Environment.getExternalStorageDirectory().getAbsolutePath() + APP_PATH_SD_CARD + APP_THUMBNAIL_PATH_SD_CARD;
+
+
+            /*URL url = null;
+            try {
+                url = new URL(url1);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                Bitmap image = BitmapFactory.decodeStream(input);*/
+
+
+
+                try {
+                    File dir = new File(fullPath);
+                    if (!dir.exists()) {
+                        dir.mkdirs();
+                    }
+
+                    OutputStream fOut = null;
+                    File file = new File(fullPath, "myvibes" + Otp.generateCode(4) + ".jpg");
+                    file.createNewFile();
+                    fOut = new FileOutputStream(file);
+
+                    // 100 means no compression, the lower you go, the stronger the compression
+                    image.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+                    fOut.flush();
+                    fOut.close();
+
+                    MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
+                    pathImage = file.getAbsolutePath();
+                } catch (Exception e) {
+                    Log.e("saveToExternalStorage()", e.getMessage());
+                }
+
+
+
+
+        return pathImage;
     }
 
     private class getBitmapFromURL extends AsyncTask<String,Bitmap,String>{
@@ -1722,6 +1827,8 @@ public class ItemAccueilActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
             String url1 = params[0];
+            //String url1 = "http://192.168.1.11/soutenance/image.jpg";
+            String result = null;
 
                 String API = url1;
 
@@ -1730,8 +1837,18 @@ public class ItemAccueilActivity extends AppCompatActivity {
                         .url(API)
                         .build();
 
-                String reponse = null;
-                try {
+
+            String reponse = null;
+            int reponseCode;
+
+            try {
+                Response response = client.newCall(request).execute();
+                Log.i("ReponsePublication", response.toString());
+                reponse = response.body().string();
+                reponseCode = response.code();
+                if (reponseCode == 200){
+
+                    //convertir l'URL en bitmap et recuperer le path
                     URL url = new URL(url1);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setDoInput(true);
@@ -1739,27 +1856,35 @@ public class ItemAccueilActivity extends AppCompatActivity {
                     InputStream input = connection.getInputStream();
                     Bitmap myBitmap = BitmapFactory.decodeStream(input);
                     publishProgress(myBitmap);
+                    result = saveImageToExternalStorage(myBitmap);
+
+                }else {
+                    result = "0";
+
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+                /*try {
+                    URL url = new URL(url1);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+                    Bitmap myBitmap = BitmapFactory.decodeStream(input);
+                    publishProgress(myBitmap);
+                    result = saveImageToExternalStorage(myBitmap);
+
 
                 } catch (IOException e) {
                     e.printStackTrace();
                     return null;
-                }
-
-                try {
-                    Response response = client.newCall(request).execute();
-                    Log.i("ReponsePublication", response.toString());
-                    reponse = response.body().string();
+                }*/
 
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
-
-
-
-            return null;
+            return result;
         }
 
         @Override
@@ -1767,7 +1892,16 @@ public class ItemAccueilActivity extends AppCompatActivity {
             super.onProgressUpdate(values);
             Bitmap bitmap = values[0];
             //saveImageToExternalStorage(bitmap);
+            //Toast.makeText(ItemAccueilActivity.this, "Conversion bitmap", Toast.LENGTH_SHORT).show();
             //iv2.setImageBitmap(bitmap);
+
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            String result = s;
 
         }
     }
@@ -1816,7 +1950,7 @@ public class ItemAccueilActivity extends AppCompatActivity {
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 //.setSmallIcon(R.drawable.ic_message_white_24dp)
-                .setSmallIcon(R.drawable.kse2)
+                .setSmallIcon(R.drawable.kseround)
                 .setContentTitle(nomService)
                 .setContentText(contenu)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -1980,8 +2114,6 @@ public class ItemAccueilActivity extends AppCompatActivity {
         }
 
     }
-
-
 
 
 

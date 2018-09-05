@@ -11,5 +11,12 @@
         android:id="@+id/codeQR"
         android:orderInCategory="100"
         android:title="Scanner code QR"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/parametre"
+        android:icon="@android:drawable/ic_menu_manage"
+        android:orderInCategory="100"
+        android:title="Paramètres"
         app:showAsAction="never" />
 </menu>

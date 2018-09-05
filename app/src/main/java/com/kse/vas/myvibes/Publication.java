@@ -16,10 +16,23 @@ public class Publication implements Serializable {
     String publicationDate;
     int publicationNbreVue;
 
-    public Publication(String publicationContenu, String publicationDate) {
+    public Publication(int publicationID, String publicationContenu, String publicationDate, String publicationImage) {
         this.publicationContenu = publicationContenu;
         this.publicationDate = publicationDate;
+        this.publicationImage = publicationImage;
+        this.publicationID = publicationID;
     }
+
+    public Publication(String publicationContenu, String publicationDate, String publicationImage) {
+        this.publicationContenu = publicationContenu;
+        this.publicationDate = publicationDate;
+        this.publicationImage = publicationImage;
+    }
+
+    /*public Publication(String publicationContenu, String publicationDate) {
+        this.publicationContenu = publicationContenu;
+        this.publicationDate = publicationDate;
+    }*/
 
     public int getPublicationID() {
         return publicationID;

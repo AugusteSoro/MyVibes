@@ -1320,7 +1320,7 @@ public class ServiceActivity extends AppCompatActivity {
 
                 String objet = String.valueOf(objetOffre);
 
-                new EnregistrerSouscription().execute(objet);
+                new EnregistrerSouscription().execute(objet, String.valueOf(offreduree));
 
             } catch (JSONException e) {
                 e.printStackTrace();

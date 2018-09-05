@@ -848,10 +848,10 @@ public class SouscriptionFragment extends Fragment  {
             super.onProgressUpdate(values);
             //pbChargement.setVisibility(View.VISIBLE);
             if(values[0] == "erreur"){
-                Toast.makeText(getView().getContext(), R.string.sous_echoue, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, R.string.sous_echoue, Toast.LENGTH_LONG).show();
             }
             else if (values[0].contains("true")){
-                Toast.makeText(getView().getContext(), R.string.sous_suppr, Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Souscription annulée", Toast.LENGTH_SHORT).show();
                 sharedPreferences.edit().remove("PREFS_LAST_ID").commit();
                 sharedPreferencesSouscription.edit().clear().commit();
                 listView1.setAdapter(null);

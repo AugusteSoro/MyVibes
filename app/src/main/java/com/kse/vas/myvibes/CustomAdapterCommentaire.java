@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -60,6 +61,7 @@ public class CustomAdapterCommentaire extends BaseAdapter {
         LinearLayout linearLayout = convertView.findViewById(R.id.LinearLayoutMessage);
 
 
+        ImageView ivValidation = convertView.findViewById(R.id.ivValidation);
         linearLayout.setBackgroundResource(R.drawable.bulle_discution_entrante);
         TextView message1 = convertView.findViewById(R.id.tvMessage);
         TextView dateCourante1 = convertView.findViewById(R.id.timestamp);
@@ -70,6 +72,7 @@ public class CustomAdapterCommentaire extends BaseAdapter {
 
         message1.setText(messageObj.message);
         dateCourante1.setText(messageObj.dateCourante);
+        ivValidation.setImageResource(R.drawable.baseline_done_black_24);
 
 
 

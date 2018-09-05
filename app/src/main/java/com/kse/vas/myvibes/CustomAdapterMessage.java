@@ -3,6 +3,7 @@ package com.kse.vas.myvibes;
 
 import android.content.Context;
 
+import android.content.Intent;
 import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,8 +11,15 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,12 +40,14 @@ public class CustomAdapterMessage extends BaseAdapter {
 
     Context context;
     String nomService;
+    int serviceId;
     List<Publication> publicationArrayList = new ArrayList<>();
     LayoutInflater inflate;
 
 
-    public CustomAdapterMessage(Context context,String nomService, List<Publication> publicationArrayList) {
+    public CustomAdapterMessage(Context context,int serviceId,String nomService, List<Publication> publicationArrayList) {
         this.context = context;
+        this.serviceId = serviceId;
         this.nomService = nomService;
         this.publicationArrayList = publicationArrayList;
         inflate = LayoutInflater.from(context);
@@ -67,17 +77,21 @@ public class CustomAdapterMessage extends BaseAdapter {
     public View getView(final int position, View convertView, ViewGroup parent) {
 
         //Obtenir les infos de l'objet
-        Publication messageObj = (Publication) getItem(position);
+        final Publication messageObj = (Publication) getItem(position);
 
         convertView = inflate.inflate(R.layout.item_publication, null);
 
         //Recuperer les layouts
         CardView cardView = convertView.findViewById(R.id.cvPublication);
 
+        Button btnCommentaire = convertView.findViewById(R.id.btnCommentaire);
+
         TextView nomService1 = convertView.findViewById(R.id.tvNomService);
         TextView message1 = convertView.findViewById(R.id.tvMessage1);
         TextView dateCourante1 = convertView.findViewById(R.id.timestamp1);
         TextView heureCourante1 = convertView.findViewById(R.id.timestampHeure);
+
+        ImageView iv7 = convertView.findViewById(R.id.imageView7);
 
         //Obtenir la date depuis l'objet
         String date = messageObj.getPublicationDate().substring(0,19);
@@ -115,9 +129,28 @@ public class CustomAdapterMessage extends BaseAdapter {
         //Afficher les informations reçues
         nomService1.setText(nomService);
         message1.setText(messageObj.getPublicationContenu());
+        Picasso.get().load(new File(messageObj.getPublicationImage())).into(iv7);
         //dateCourante1.setText(messageObj.getPublicationDate().substring(0,19));
         dateCourante1.setText("Réçu à "+heureComplete);
         heureCourante1.setText(dateComplete);
+
+        //Evenement au clic du bouton commentaire
+        btnCommentaire.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(context, "Bientôt disponible... " + "Position: "+position, Toast.LENGTH_SHORT).show();
+                //TODO: Evenement au click du bouton commentaire
+                Intent intent = new Intent(context,CommentaireActivity.class);
+                //Obtenir les infos de l'objet
+                final Publication messageObj1 = (Publication) getItem(position);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                //Envoi de l'ID de la publication
+                intent.putExtra("Idpublication",messageObj.getPublicationID());
+                intent.putExtra("serviceId",serviceId);
+                context.getApplicationContext().startActivity(intent);
+                //context.startActivity(intent);
+            }
+        });
 
         return convertView;
     }

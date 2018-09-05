@@ -35,6 +35,7 @@
     <string name="fact_reussi">Souscription %1$s enregistrée. vous recevrez vos ALERTES SECURITE jusqu\'au %2$s. vous serez prélevé automatiquement. </string>
     <string name="fact_echoue">Echec Souscription. Credit insuffisant, veuillez recharger votre compte</string>
     <string name="sous_suppr">Souscription annulé</string>
+    <string name="sous_expiree">Votre offre à expirée, veuiller souscrire à nouveaux. merci</string>
 
     <!-- Strings related to loading -->
     <string name="charg_terminer">Chargement terminer </string>
@@ -49,6 +50,9 @@
 
     <!-- Strings related to internet connexion -->
     <string name="error_cnx">Aucune connexion internet</string>
+
+    <!-- Strings related to URL -->
+    <string name="url_invalide">L\'\URL n\'\est pas valide</string>
 
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -147,5 +151,15 @@
 
     <!-- Example settings for Informations -->
     <string name="pref_header_informations">Informations</string>
+    <string name="title_activity_parametre2">Paramètres</string>
+
+    <!-- Strings related to parametres -->
+        <!-- Informations -->
+    <string name="param_info">l\'application MyVibes, permet de recevoir et commenter les publications et alertes de services en temps réel et a moindre coût </string>
+    <!-- A propos -->
+    <string name="param_apropos">Kyrmann Software engineering</string>
+    <!-- Aide -->
+    <string name="param_aide">Merci de contactez le support.\n<font color="#28b5f5">Par appel</font>\nTel: +255 57 88 55 99\nCel1: +225 01 00 02 77\nCel2: 04 48 48 79 \nPar Email \nEmail: hello@kyrmann.com</string>
+
 
 </resources>

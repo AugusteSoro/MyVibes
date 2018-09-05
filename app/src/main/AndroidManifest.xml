@@ -125,7 +125,11 @@
             android:label="@string/title_activity_accueil_navigation" />
         <activity
             android:name=".ParametreActivity"
-            android:label="@string/title_activity_parametre"></activity>
+            android:label="@string/title_activity_parametre" />
+        <activity
+            android:name=".Parametre2Activity"
+            android:label="@string/title_activity_parametre2"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
